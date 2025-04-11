@@ -1,8 +1,6 @@
 const foods = [
   'ข้าวผัด', 'กะเพราไก่ไข่ดาว', 'ข้าวมันไก่', 'ส้มตำ', 'ไก่ทอด',
-  'หมูกระเทียม', 'ผัดไทย', 'ข้าวหน้าเป็ด', 'ข้าวต้มหมู', 'เกี๊ยวซ่า',
-  'ราดหน้าหมู', 'มะหมี่เกี๊ยว', 'ข้าวไข่เจียวหมูสับ', 'ขนมจีนน้ำยา',
-  'ข้าวหมูแดง', 'ข้าวหมูกรอบ', 'ซุปกิมจิ', 'ยำวุ้นเส้น', 'ข้าวคลุกกะปิ', 'มาม่าต้มยำกุ้ง'
+  'หมูกระเทียม', 'ผัดไทย', 'ข้าวหน้าเป็ด', 'ข้าวต้มหมู', 'เกี๊ยวซ่า'
 ];
 
 const canvas = document.getElementById("wheelCanvas");
@@ -30,7 +28,6 @@ function drawWheel() {
     ctx.fillStyle = i % 2 === 0 ? "#f39c12" : "#e74c3c";
     ctx.fill();
     ctx.save();
-
     ctx.translate(wheelRadius, wheelRadius);
     ctx.rotate(angle + anglePerSegment / 2);
     ctx.textAlign = "right";
@@ -40,7 +37,6 @@ function drawWheel() {
     ctx.restore();
   }
 
-  // draw pointer
   ctx.beginPath();
   ctx.moveTo(wheelRadius - 10, 10);
   ctx.lineTo(wheelRadius + 10, 10);
@@ -53,7 +49,7 @@ function spin() {
   if (spinning) return;
   spinning = true;
 
-  const spins = Math.random() * 3 + 5; // 5 ถึง 8 รอบ
+  const spins = Math.random() * 3 + 5;
   const targetRotation = rotation + spins * 2 * Math.PI;
   const duration = 3000;
   const start = performance.now();
@@ -81,11 +77,11 @@ function easeOutCubic(x) {
 }
 
 function showResult() {
-  const selectedIndex = numSegments - Math.floor(((rotation % (2 * Math.PI)) / anglePerSegment)) - 1;
+  const normalizedRotation = (2 * Math.PI - (rotation % (2 * Math.PI))) % (2 * Math.PI);
+  const selectedIndex = Math.floor(normalizedRotation / anglePerSegment);
   const selectedFood = foods[selectedIndex % numSegments];
   resultText.textContent = `ลองกิน ${selectedFood} ไหม?`;
 
-  // confetti
   confetti({
     particleCount: 150,
     spread: 100,
@@ -101,6 +97,4 @@ function closePopup() {
 
 spinButton.addEventListener("click", spin);
 closeButton.addEventListener("click", closePopup);
-
-// เริ่มต้นวาด
 drawWheel();
