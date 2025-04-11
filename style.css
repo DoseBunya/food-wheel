@@ -28,6 +28,7 @@ canvas {
   height: auto;
 }
 
+/* popup */
 #popup {
   position: fixed;
   top: 0;
@@ -56,29 +57,4 @@ canvas {
 #popup button {
   margin-top: 20px;
   padding: 10px 20px;
-  background-color: #28a745;
-  border: none;
-  color: white;
-  border-radius: 10px;
-  cursor: pointer;
-}
-
-.hidden {
-  display: none !important;
-}
-
-@media (max-width: 600px) {
-  canvas {
-    width: 90vw;
-    height: 90vw;
-  }
-
-  .popup-content {
-    width: 80vw;
-    font-size: 16px;
-  }
-
-  button {
-    font-size: 16px;
-  }
-}
+  background-color: #28a
