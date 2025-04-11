@@ -1,100 +1,106 @@
 const foods = [
-  'ข้าวผัด', 'กะเพรา', 'ส้มตำ', 'ผัดไทย', 'ข้าวต้ม',
-  'ข้าวมันไก่', 'ราดหน้า', 'หมูกระเทียม', 'ข้าวไข่เจียว', 'เกี๊ยวซ่า'
+  'ข้าวผัด', 'กะเพราไก่ไข่ดาว', 'ข้าวมันไก่', 'ส้มตำ', 'ไก่ทอด',
+  'หมูกระเทียม', 'ผัดไทย', 'ข้าวหน้าเป็ด', 'ข้าวต้มหมู', 'เกี๊ยวซ่า',
+  'ราดหน้าหมู', 'มะหมี่เกี๊ยว', 'ข้าวไข่เจียวหมูสับ', 'ขนมจีนน้ำยา',
+  'ข้าวหมูแดง', 'ข้าวหมูกรอบ', 'ซุปกิมจิ', 'ยำวุ้นเส้น', 'ข้าวคลุกกะปิ', 'มาม่าต้มยำกุ้ง'
 ];
 
 const canvas = document.getElementById("wheelCanvas");
 const ctx = canvas.getContext("2d");
-const tickSound = document.getElementById("tickSound");
 const spinButton = document.getElementById("spinButton");
+const popup = document.getElementById("popup");
+const resultText = document.getElementById("resultText");
+const closeButton = document.getElementById("closeButton");
+const tickSound = document.getElementById("tickSound");
 
-let startAngle = 0;
-let arc = Math.PI * 2 / foods.length;
-let spinTimeout = null;
-let spinAngleStart = 0;
-let spinTime = 0;
-let spinTimeTotal = 0;
+const wheelRadius = canvas.width / 2;
+const numSegments = foods.length;
+const anglePerSegment = (2 * Math.PI) / numSegments;
+let rotation = 0;
 let spinning = false;
 
 function drawWheel() {
-  let colors = ["#fbc531", "#e84118"];
-  for (let i = 0; i < foods.length; i++) {
-    let angle = startAngle + i * arc;
-    ctx.fillStyle = colors[i % 2];
-    ctx.beginPath();
-    ctx.moveTo(250, 250);
-    ctx.arc(250, 250, 200, angle, angle + arc, false);
-    ctx.lineTo(250, 250);
-    ctx.fill();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  for (let i = 0; i < numSegments; i++) {
+    const angle = i * anglePerSegment + rotation;
+    ctx.beginPath();
+    ctx.moveTo(wheelRadius, wheelRadius);
+    ctx.arc(wheelRadius, wheelRadius, wheelRadius, angle, angle + anglePerSegment);
+    ctx.fillStyle = i % 2 === 0 ? "#f39c12" : "#e74c3c";
+    ctx.fill();
     ctx.save();
-    ctx.fillStyle = "white";
-    ctx.translate(250, 250);
-    ctx.rotate(angle + arc / 2);
+
+    ctx.translate(wheelRadius, wheelRadius);
+    ctx.rotate(angle + anglePerSegment / 2);
     ctx.textAlign = "right";
-    ctx.font = "16px sans-serif";
-    ctx.fillText(foods[i], 190, 5);
+    ctx.fillStyle = "#fff";
+    ctx.font = "16px Segoe UI";
+    ctx.fillText(foods[i], wheelRadius - 10, 10);
     ctx.restore();
   }
 
-  ctx.fillStyle = "#333";
+  // draw pointer
   ctx.beginPath();
-  ctx.moveTo(240, 10);
-  ctx.lineTo(260, 10);
-  ctx.lineTo(250, 40);
+  ctx.moveTo(wheelRadius - 10, 10);
+  ctx.lineTo(wheelRadius + 10, 10);
+  ctx.lineTo(wheelRadius, 40);
+  ctx.fillStyle = "#000";
   ctx.fill();
-}
-
-function rotateWheel() {
-  spinAngleStart *= 0.97;
-  startAngle += spinAngleStart;
-
-  if (spinAngleStart <= 0.002) {
-    clearTimeout(spinTimeout);
-    let degrees = startAngle * 180 / Math.PI + 90;
-    let arcd = arc * 180 / Math.PI;
-    let index = Math.floor((360 - (degrees % 360)) / arcd);
-    let result = foods[index];
-    showResultPopup(result);
-    return;
-  }
-
-  drawWheel();
-  tickSound.currentTime = 0;
-  tickSound.play();
-
-  spinTimeout = setTimeout(rotateWheel, 30);
 }
 
 function spin() {
   if (spinning) return;
   spinning = true;
-  spinButton.disabled = true;
-  spinAngleStart = Math.random() * 0.3 + 0.25;
-  spinTime = 0;
-  spinTimeTotal = Math.random() * 3000 + 4000;
-  rotateWheel();
+
+  const spins = Math.random() * 3 + 5; // 5 ถึง 8 รอบ
+  const targetRotation = rotation + spins * 2 * Math.PI;
+  const duration = 3000;
+  const start = performance.now();
+
+  function animate(time) {
+    const elapsed = time - start;
+    const progress = Math.min(elapsed / duration, 1);
+    rotation = rotation + (targetRotation - rotation) * easeOutCubic(progress);
+    drawWheel();
+    tickSound.play();
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      spinning = false;
+      showResult();
+    }
+  }
+
+  requestAnimationFrame(animate);
 }
 
-function showResultPopup(food) {
-  document.getElementById("resultText").textContent = "ลองกิน " + food + " ไหม?";
-  const popup = document.getElementById("popup");
+function easeOutCubic(x) {
+  return 1 - Math.pow(1 - x, 3);
+}
+
+function showResult() {
+  const selectedIndex = numSegments - Math.floor(((rotation % (2 * Math.PI)) / anglePerSegment)) - 1;
+  const selectedFood = foods[selectedIndex % numSegments];
+  resultText.textContent = `ลองกิน ${selectedFood} ไหม?`;
+
+  // confetti
+  confetti({
+    particleCount: 150,
+    spread: 100,
+    origin: { y: 0.6 },
+  });
+
   popup.classList.add("show");
-  popup.classList.remove("hidden");
-  confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
 }
 
 function closePopup() {
-  const popup = document.getElementById("popup");
   popup.classList.remove("show");
-  popup.classList.add("hidden");
-  spinAngleStart = 0;
-  spinTime = 0;
-  spinTimeTotal = 0;
-  startAngle = 0;
-  spinning = false;
-  spinButton.disabled = false;
-  drawWheel();
 }
 
+spinButton.addEventListener("click", spin);
+closeButton.addEventListener("click", closePopup);
+
+// เริ่มต้นวาด
 drawWheel();
