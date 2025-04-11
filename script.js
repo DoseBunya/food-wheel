@@ -77,9 +77,12 @@ function easeOutCubic(x) {
 }
 
 function showResult() {
-  const normalizedRotation = (2 * Math.PI - (rotation % (2 * Math.PI))) % (2 * Math.PI);
+  // เลื่อนตำแหน่งให้ 0 radian อยู่ตรงบนสุด (ตรงเข็ม)
+  const adjustedRotation = (rotation + anglePerSegment / 2) % (2 * Math.PI);
+  const normalizedRotation = (2 * Math.PI - adjustedRotation) % (2 * Math.PI);
   const selectedIndex = Math.floor(normalizedRotation / anglePerSegment);
   const selectedFood = foods[selectedIndex % numSegments];
+
   resultText.textContent = `ลองกิน ${selectedFood} ไหม?`;
 
   confetti({
